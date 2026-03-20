@@ -152,7 +152,7 @@ func (c *Client) FetchMergeRequests(sc config.SectionConfig, projectID int, page
 				Page:    int64(page),
 			},
 		}
-		applyMRFiltersProject(opts, sc)
+		applyMRFilters(projectMROpts{opts}, sc)
 		mrs, resp, err = c.gl.MergeRequests.ListProjectMergeRequests(int64(projectID), opts)
 	} else {
 		opts := &gitlab.ListMergeRequestsOptions{
@@ -163,7 +163,7 @@ func (c *Client) FetchMergeRequests(sc config.SectionConfig, projectID int, page
 				Page:    int64(page),
 			},
 		}
-		applyMRFilters(opts, sc)
+		applyMRFilters(globalMROpts{opts}, sc)
 		mrs, resp, err = c.gl.MergeRequests.ListMergeRequests(opts)
 	}
 
@@ -181,59 +181,66 @@ func (c *Client) FetchMergeRequests(sc config.SectionConfig, projectID int, page
 	return convertMRs(mrs), pi, nil
 }
 
-func applyMRFilters(opts *gitlab.ListMergeRequestsOptions, sc config.SectionConfig) {
-	if sc.AuthorUsername != "" {
-		opts.AuthorUsername = &sc.AuthorUsername
-	}
-	if sc.ReviewerUsername != "" {
-		opts.ReviewerUsername = &sc.ReviewerUsername
-	}
-	if len(sc.Labels) > 0 {
-		labels := gitlab.LabelOptions(sc.Labels)
-		opts.Labels = &labels
-	}
-	if sc.Milestone != "" {
-		opts.Milestone = &sc.Milestone
-	}
-	if sc.Search != "" {
-		opts.Search = &sc.Search
-	}
-	if sc.SourceBranch != "" {
-		opts.SourceBranch = &sc.SourceBranch
-	}
-	if sc.TargetBranch != "" {
-		opts.TargetBranch = &sc.TargetBranch
-	}
-	if sc.Draft != nil {
-		opts.Draft = sc.Draft
-	}
+// mrFilterTarget abstracts the common filter fields shared by both
+// ListMergeRequestsOptions and ListProjectMergeRequestsOptions.
+type mrFilterTarget interface {
+	setAuthorUsername(s *string)
+	setReviewerUsername(s *string)
+	setLabels(l *gitlab.LabelOptions)
+	setMilestone(s *string)
+	setSearch(s *string)
+	setSourceBranch(s *string)
+	setTargetBranch(s *string)
+	setDraft(b *bool)
 }
 
-func applyMRFiltersProject(opts *gitlab.ListProjectMergeRequestsOptions, sc config.SectionConfig) {
+type globalMROpts struct{ *gitlab.ListMergeRequestsOptions }
+
+func (o globalMROpts) setAuthorUsername(s *string)    { o.AuthorUsername = s }
+func (o globalMROpts) setReviewerUsername(s *string)   { o.ReviewerUsername = s }
+func (o globalMROpts) setLabels(l *gitlab.LabelOptions) { o.Labels = l }
+func (o globalMROpts) setMilestone(s *string)          { o.Milestone = s }
+func (o globalMROpts) setSearch(s *string)             { o.Search = s }
+func (o globalMROpts) setSourceBranch(s *string)       { o.SourceBranch = s }
+func (o globalMROpts) setTargetBranch(s *string)       { o.TargetBranch = s }
+func (o globalMROpts) setDraft(b *bool)                { o.Draft = b }
+
+type projectMROpts struct{ *gitlab.ListProjectMergeRequestsOptions }
+
+func (o projectMROpts) setAuthorUsername(s *string)    { o.AuthorUsername = s }
+func (o projectMROpts) setReviewerUsername(s *string)   { o.ReviewerUsername = s }
+func (o projectMROpts) setLabels(l *gitlab.LabelOptions) { o.Labels = l }
+func (o projectMROpts) setMilestone(s *string)          { o.Milestone = s }
+func (o projectMROpts) setSearch(s *string)             { o.Search = s }
+func (o projectMROpts) setSourceBranch(s *string)       { o.SourceBranch = s }
+func (o projectMROpts) setTargetBranch(s *string)       { o.TargetBranch = s }
+func (o projectMROpts) setDraft(b *bool)                { o.Draft = b }
+
+func applyMRFilters(target mrFilterTarget, sc config.SectionConfig) {
 	if sc.AuthorUsername != "" {
-		opts.AuthorUsername = &sc.AuthorUsername
+		target.setAuthorUsername(&sc.AuthorUsername)
 	}
 	if sc.ReviewerUsername != "" {
-		opts.ReviewerUsername = &sc.ReviewerUsername
+		target.setReviewerUsername(&sc.ReviewerUsername)
 	}
 	if len(sc.Labels) > 0 {
 		labels := gitlab.LabelOptions(sc.Labels)
-		opts.Labels = &labels
+		target.setLabels(&labels)
 	}
 	if sc.Milestone != "" {
-		opts.Milestone = &sc.Milestone
+		target.setMilestone(&sc.Milestone)
 	}
 	if sc.Search != "" {
-		opts.Search = &sc.Search
+		target.setSearch(&sc.Search)
 	}
 	if sc.SourceBranch != "" {
-		opts.SourceBranch = &sc.SourceBranch
+		target.setSourceBranch(&sc.SourceBranch)
 	}
 	if sc.TargetBranch != "" {
-		opts.TargetBranch = &sc.TargetBranch
+		target.setTargetBranch(&sc.TargetBranch)
 	}
 	if sc.Draft != nil {
-		opts.Draft = sc.Draft
+		target.setDraft(sc.Draft)
 	}
 }
 
