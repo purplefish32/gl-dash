@@ -1,0 +1,64 @@
+{
+  "strictness": 2,
+  "commentTypes": ["logic"],
+  "triggerOnUpdates": false,
+  "triggerOnDrafts": false,
+  "fixWithAI": true,
+  "statusCheck": false,
+  "ignorePatterns": "go.sum\nvendor/\n*.pb.go\n*_mock.go\n*.gen.go",
+  "summarySection": {
+    "included": true,
+    "collapsible": true,
+    "defaultOpen": false
+  },
+  "issuesTableSection": {
+    "included": true,
+    "collapsible": false,
+    "defaultOpen": true
+  },
+  "confidenceScoreSection": {
+    "included": false
+  },
+  "sequenceDiagramSection": {
+    "included": false
+  },
+  "customContext": {
+    "rules": [
+      {
+        "rule": "Errors must be wrapped with fmt.Errorf and %w, never silently discarded",
+        "scope": "**/*.go"
+      },
+      {
+        "rule": "Do not compare errors with == unless using sentinel errors; use errors.Is or errors.As",
+        "scope": "**/*.go"
+      },
+      {
+        "rule": "Goroutines must have a clear termination path; flag unbounded goroutines",
+        "scope": "**/*.go"
+      },
+      {
+        "rule": "This is a Bubble Tea TUI app. All state mutations happen in Update(). View() must be pure. Commands return tea.Cmd, never block.",
+        "scope": "internal/tui/**/*.go"
+      },
+      {
+        "rule": "Shell commands executed via sh -c must use the {{sh .Field}} template function for escaping user-controlled values",
+        "scope": "internal/tui/checkout.go"
+      },
+      {
+        "rule": "GitLab API calls must handle pagination. Hardcoded PerPage limits should be documented if they truncate results.",
+        "scope": "internal/data/**/*.go"
+      }
+    ],
+    "files": [
+      {
+        "path": "CLAUDE.md",
+        "description": "Project architecture, key patterns, and build commands"
+      }
+    ],
+    "other": [
+      {
+        "instruction": "This is a terminal CLI tool, not a web service. Network latency and HTTP endpoint security concerns do not apply. Focus on correctness, error handling, and shell injection risks."
+      }
+    ]
+  }
+}
