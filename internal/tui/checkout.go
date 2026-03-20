@@ -5,12 +5,19 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"text/template"
 
 	tea "charm.land/bubbletea/v2"
 
 	"github.com/purplefish32/gl-dash/internal/data"
 )
+
+// shellEscape escapes a string for safe use inside single quotes in sh -c.
+// It replaces single quotes with the sequence '\'' (end quote, escaped quote, start quote).
+func shellEscape(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", "'\\''") + "'"
+}
 
 type commandDoneMsg struct {
 	action string
@@ -45,7 +52,10 @@ func varsFromMR(mr data.MergeRequest) commandVars {
 func (m *Model) executeCommand(action, cmdTemplate string, mr data.MergeRequest) tea.Cmd {
 	vars := varsFromMR(mr)
 
-	tmpl, err := template.New(action).Parse(cmdTemplate)
+	funcMap := template.FuncMap{
+		"sh": shellEscape,
+	}
+	tmpl, err := template.New(action).Funcs(funcMap).Parse(cmdTemplate)
 	if err != nil {
 		return func() tea.Msg {
 			return commandDoneMsg{action: action, err: fmt.Errorf("invalid %s command template: %w", action, err)}

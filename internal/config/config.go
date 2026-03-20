@@ -66,14 +66,8 @@ func Load() (*Config, error) {
 		},
 	}
 
-	// Token from env takes priority
-	if token := os.Getenv("GITLAB_TOKEN"); token != "" {
-		cfg.GitLab.Token = token
-	}
-
-	if url := os.Getenv("GITLAB_URL"); url != "" {
-		cfg.GitLab.BaseURL = url
-	}
+	envToken := os.Getenv("GITLAB_TOKEN")
+	envURL := os.Getenv("GITLAB_URL")
 
 	// Try loading config file
 	path := os.Getenv("GL_DASH_CONFIG")
@@ -84,8 +78,12 @@ func Load() (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			if cfg.GitLab.Token == "" {
+			if envToken == "" {
 				return nil, fmt.Errorf("no GitLab token found. Set GITLAB_TOKEN env var or create %s", defaultConfigPath())
+			}
+			cfg.GitLab.Token = envToken
+			if envURL != "" {
+				cfg.GitLab.BaseURL = envURL
 			}
 			return cfg, nil
 		}
@@ -96,12 +94,12 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("parsing config: %w", err)
 	}
 
-	// Env vars override config file
-	if token := os.Getenv("GITLAB_TOKEN"); token != "" {
-		cfg.GitLab.Token = token
+	// Env vars override config file values
+	if envToken != "" {
+		cfg.GitLab.Token = envToken
 	}
-	if url := os.Getenv("GITLAB_URL"); url != "" {
-		cfg.GitLab.BaseURL = url
+	if envURL != "" {
+		cfg.GitLab.BaseURL = envURL
 	}
 
 	if cfg.GitLab.Token == "" {

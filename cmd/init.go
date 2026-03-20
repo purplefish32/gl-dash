@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 const defaultConfig = `# gl-dash configuration
@@ -34,6 +38,7 @@ refreshMinutes: 5
 # Review command (press v on an MR). Template variables:
 #   {{.IID}}, {{.MrNumber}}, {{.SourceBranch}}, {{.TargetBranch}},
 #   {{.ProjectPath}}, {{.Author}}, {{.Title}}, {{.WebURL}}
+# Use {{sh .Field}} to shell-escape a value for safe use in sh -c commands.
 # reviewCommand: "tmux new-window -n 'MR-{{.MrNumber}}' 'wt switch mr:{{.MrNumber}} && claude /review'"
 
 # Map project paths to local directories (for review in multi-repo setups)
@@ -72,16 +77,51 @@ var initCmd = &cobra.Command{
 			return fmt.Errorf("creating config directory: %w", err)
 		}
 
-		if err := os.WriteFile(configPath, []byte(defaultConfig), 0644); err != nil {
+		reader := bufio.NewReader(os.Stdin)
+
+		// Prompt for GitLab URL
+		fmt.Print("GitLab URL (press Enter for https://gitlab.com): ")
+		urlInput, err := reader.ReadString('\n')
+		if err != nil {
+			return fmt.Errorf("reading URL input: %w", err)
+		}
+		urlInput = strings.TrimSpace(urlInput)
+		if urlInput == "" {
+			urlInput = "https://gitlab.com"
+		}
+		if u, err := url.Parse(urlInput); err != nil || u.Scheme == "" || u.Host == "" {
+			return fmt.Errorf("invalid URL %q — expected format: https://gitlab.example.com", urlInput)
+		}
+
+		// Prompt for token (hidden input)
+		fmt.Print("GitLab personal access token: ")
+		tokenBytes, err := term.ReadPassword(int(os.Stdin.Fd()))
+		fmt.Println()
+		if err != nil {
+			return fmt.Errorf("reading token: %w", err)
+		}
+		token := strings.TrimSpace(string(tokenBytes))
+
+		// Build config with provided values
+		config := defaultConfig
+		if urlInput != "https://gitlab.com" {
+			config = strings.Replace(config, "# baseUrl: https://gitlab.com", "baseUrl: \""+urlInput+"\"", 1)
+		}
+		if token != "" {
+			config = strings.Replace(config, "# token: your-token-here", "token: \""+token+"\"", 1)
+		}
+
+		if err := os.WriteFile(configPath, []byte(config), 0600); err != nil {
 			return fmt.Errorf("writing config: %w", err)
 		}
 
 		fmt.Printf("Config created at %s\n", configPath)
-		fmt.Println("\nNext steps:")
-		fmt.Println("  1. Set your GitLab token:  export GITLAB_TOKEN=your-token")
-		fmt.Println("  2. Set your GitLab URL:    export GITLAB_URL=https://gitlab.example.com")
-		fmt.Println("  3. Edit the config:        $EDITOR " + configPath)
-		fmt.Println("  4. Run:                    gl-dash")
+		if token == "" {
+			fmt.Println("\nNo token provided. Set it later:")
+			fmt.Println("  export GITLAB_TOKEN=your-token")
+			fmt.Println("  or edit: $EDITOR " + configPath)
+		}
+		fmt.Println("\nRun gl-dash to start!")
 		return nil
 	},
 }

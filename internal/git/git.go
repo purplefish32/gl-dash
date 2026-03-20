@@ -55,15 +55,31 @@ func projectPathFromRemote(remoteName, gitlabHost string) string {
 	return parseProjectPath(url, gitlabHost)
 }
 
+var (
+	cachedHost        string
+	cachedSSHPattern  *regexp.Regexp
+	cachedHTTPPattern *regexp.Regexp
+)
+
+func hostPatterns(gitlabHost string) (*regexp.Regexp, *regexp.Regexp) {
+	if gitlabHost == cachedHost && cachedSSHPattern != nil {
+		return cachedSSHPattern, cachedHTTPPattern
+	}
+	cachedHost = gitlabHost
+	cachedSSHPattern = regexp.MustCompile(`@` + regexp.QuoteMeta(gitlabHost) + `:(.+?)(?:\.git)?$`)
+	cachedHTTPPattern = regexp.MustCompile(`https?://` + regexp.QuoteMeta(gitlabHost) + `/(.+?)(?:\.git)?$`)
+	return cachedSSHPattern, cachedHTTPPattern
+}
+
 func parseProjectPath(url, gitlabHost string) string {
+	sshPattern, httpsPattern := hostPatterns(gitlabHost)
+
 	// SSH: git@gitlab.com:group/subgroup/project.git
-	sshPattern := regexp.MustCompile(`@` + regexp.QuoteMeta(gitlabHost) + `:(.+?)(?:\.git)?$`)
 	if m := sshPattern.FindStringSubmatch(url); len(m) > 1 {
 		return m[1]
 	}
 
 	// HTTPS: https://gitlab.com/group/subgroup/project.git
-	httpsPattern := regexp.MustCompile(`https?://` + regexp.QuoteMeta(gitlabHost) + `/(.+?)(?:\.git)?$`)
 	if m := httpsPattern.FindStringSubmatch(url); len(m) > 1 {
 		return m[1]
 	}
