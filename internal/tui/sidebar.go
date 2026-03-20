@@ -521,16 +521,25 @@ func renderPipelineStatus(status string) string {
 	}
 }
 
+var (
+	cachedRenderer      *glamour.TermRenderer
+	cachedRendererWidth int
+)
+
 func renderMarkdown(md string, width int) string {
-	r, err := glamour.NewTermRenderer(
-		glamour.WithStandardStyle("dark"),
-		glamour.WithWordWrap(width),
-	)
-	if err != nil {
-		return md
+	if cachedRenderer == nil || cachedRendererWidth != width {
+		r, err := glamour.NewTermRenderer(
+			glamour.WithStandardStyle("dark"),
+			glamour.WithWordWrap(width),
+		)
+		if err != nil {
+			return md
+		}
+		cachedRenderer = r
+		cachedRendererWidth = width
 	}
 
-	rendered, err := r.Render(md)
+	rendered, err := cachedRenderer.Render(md)
 	if err != nil {
 		return md
 	}
