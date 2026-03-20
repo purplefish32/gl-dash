@@ -3,6 +3,7 @@ package cmd
 import (
 	"bufio"
 	"fmt"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -79,10 +80,16 @@ var initCmd = &cobra.Command{
 
 		// Prompt for GitLab URL
 		fmt.Print("GitLab URL (press Enter for https://gitlab.com): ")
-		urlInput, _ := reader.ReadString('\n')
+		urlInput, err := reader.ReadString('\n')
+		if err != nil {
+			return fmt.Errorf("reading URL input: %w", err)
+		}
 		urlInput = strings.TrimSpace(urlInput)
 		if urlInput == "" {
 			urlInput = "https://gitlab.com"
+		}
+		if u, err := url.Parse(urlInput); err != nil || u.Scheme == "" || u.Host == "" {
+			return fmt.Errorf("invalid URL %q — expected format: https://gitlab.example.com", urlInput)
 		}
 
 		// Prompt for token (hidden input)
