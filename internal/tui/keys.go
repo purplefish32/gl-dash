@@ -27,7 +27,6 @@ func (m *Model) maybeOpenPicker(key string) tea.Cmd {
 	switch lastChar {
 	case "@":
 		p := newPicker("@")
-		m.activePicker = &p
 		// Extract users from already-loaded MRs and issues
 		items := m.collectUsers()
 		p.setItems(items)
