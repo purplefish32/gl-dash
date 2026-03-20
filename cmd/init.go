@@ -105,10 +105,10 @@ var initCmd = &cobra.Command{
 		// Build config with provided values
 		config := defaultConfig
 		if urlInput != "https://gitlab.com" {
-			config = strings.Replace(config, "# baseUrl: https://gitlab.com", "baseUrl: "+urlInput, 1)
+			config = strings.Replace(config, "# baseUrl: https://gitlab.com", "baseUrl: \""+urlInput+"\"", 1)
 		}
 		if token != "" {
-			config = strings.Replace(config, "# token: your-token-here", "token: "+token, 1)
+			config = strings.Replace(config, "# token: your-token-here", "token: \""+token+"\"", 1)
 		}
 
 		if err := os.WriteFile(configPath, []byte(config), 0600); err != nil {
