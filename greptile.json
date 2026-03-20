@@ -26,27 +26,27 @@
     "rules": [
       {
         "rule": "Errors must be wrapped with fmt.Errorf and %w, never silently discarded",
-        "scope": "**/*.go"
+        "scope": ["**/*.go"]
       },
       {
         "rule": "Do not compare errors with == unless using sentinel errors; use errors.Is or errors.As",
-        "scope": "**/*.go"
+        "scope": ["**/*.go"]
       },
       {
         "rule": "Goroutines must have a clear termination path; flag unbounded goroutines",
-        "scope": "**/*.go"
+        "scope": ["**/*.go"]
       },
       {
         "rule": "This is a Bubble Tea TUI app. All state mutations happen in Update(). View() must be pure. Commands return tea.Cmd, never block.",
-        "scope": "internal/tui/**/*.go"
+        "scope": ["internal/tui/**/*.go"]
       },
       {
         "rule": "Shell commands executed via sh -c must use the {{sh .Field}} template function for escaping user-controlled values",
-        "scope": "internal/tui/checkout.go"
+        "scope": ["internal/tui/checkout.go"]
       },
       {
         "rule": "GitLab API calls must handle pagination. Hardcoded PerPage limits should be documented if they truncate results.",
-        "scope": "internal/data/**/*.go"
+        "scope": ["internal/data/**/*.go"]
       }
     ],
     "files": [
