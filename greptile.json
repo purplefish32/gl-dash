@@ -57,7 +57,7 @@
     ],
     "other": [
       {
-        "instruction": "This is a terminal CLI tool, not a web service. Network latency and HTTP endpoint security concerns do not apply. Focus on correctness, error handling, and shell injection risks."
+        "content": "This is a terminal CLI tool, not a web service. Network latency and HTTP endpoint security concerns do not apply. Focus on correctness, error handling, and shell injection risks."
       }
     ]
   }
