@@ -38,6 +38,7 @@ refreshMinutes: 5
 # Review command (press v on an MR). Template variables:
 #   {{.IID}}, {{.MrNumber}}, {{.SourceBranch}}, {{.TargetBranch}},
 #   {{.ProjectPath}}, {{.Author}}, {{.Title}}, {{.WebURL}}
+# Use {{sh .Field}} to shell-escape a value for safe use in sh -c commands.
 # reviewCommand: "tmux new-window -n 'MR-{{.MrNumber}}' 'wt switch mr:{{.MrNumber}} && claude /review'"
 
 # Map project paths to local directories (for review in multi-repo setups)

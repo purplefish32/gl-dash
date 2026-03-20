@@ -40,12 +40,12 @@ func varsFromMR(mr data.MergeRequest) commandVars {
 	return commandVars{
 		IID:          mr.IID,
 		MrNumber:     mr.IID,
-		SourceBranch: shellEscape(mr.SourceBranch),
-		TargetBranch: shellEscape(mr.TargetBranch),
-		ProjectPath:  shellEscape(mr.Project),
-		Author:       shellEscape(mr.Author),
-		Title:        shellEscape(mr.Title),
-		WebURL:       shellEscape(mr.WebURL),
+		SourceBranch: mr.SourceBranch,
+		TargetBranch: mr.TargetBranch,
+		ProjectPath:  mr.Project,
+		Author:       mr.Author,
+		Title:        mr.Title,
+		WebURL:       mr.WebURL,
 	}
 }
 
