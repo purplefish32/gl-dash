@@ -178,7 +178,9 @@ func openBrowser(url string) tea.Cmd {
 		default:
 			cmd = exec.Command("open", url)
 		}
-		cmd.Run()
+		if err := cmd.Run(); err != nil {
+			return statusMsg{text: fmt.Sprintf("Failed to open browser: %v", err)}
+		}
 		return statusMsg{text: "Opened in browser"}
 	}
 }
